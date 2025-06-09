@@ -4,7 +4,9 @@ import { useSession, signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { ContentReader } from '@/components/ContentReader'
 import { SessionCard } from '@/components/SessionCard'
+import { LearningSession } from '@/components/LearningSession'
 import { Leaderboard } from '@/components/Leaderboard'
+import { NotificationSystem } from '@/components/NotificationSystem'
 import { AuthForm } from '@/components/AuthForm'
 import { TaskCard } from '@/components/TaskCard'
 import { SimpleTaskCreator } from '@/components/SimpleTaskCreator'
@@ -44,6 +46,7 @@ export default function HomePage() {
   const [newGroupName, setNewGroupName] = useState('')
   const [inviteCode, setInviteCode] = useState('')
   const [loading, setLoading] = useState(false)
+  const [inLearningSession, setInLearningSession] = useState(false)
 
   // Set default selected group from session
   useEffect(() => {
@@ -248,6 +251,10 @@ export default function HomePage() {
               <span className="text-sm text-gray-600">
                 Welcome, {session.user.name}!
               </span>
+              <NotificationSystem 
+                groupId={selectedGroup?.id}
+                userId={session.user.id}
+              />
               <Button variant="outline" size="sm" onClick={() => signOut()}>
                 <LogOut className="w-4 h-4 mr-1" />
                 Sign Out
@@ -257,7 +264,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-4 px-4 sm:py-6 sm:px-6 lg:px-8">
         {!selectedGroup ? (
           // No group selected - show group management
           <div className="text-center space-y-6">
@@ -391,22 +398,28 @@ export default function HomePage() {
 
             {/* Main Content Tabs */}
             <Tabs defaultValue="session" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
                 <TabsTrigger value="tasks">
-                  <Target className="w-4 h-4 mr-2" />
-                  Tasks ({tasks.length})
+                  <Target className="w-4 h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Tasks</span>
+                  <span className="sm:hidden">({tasks.length})</span>
+                  <span className="hidden sm:inline"> ({tasks.length})</span>
                 </TabsTrigger>
                 <TabsTrigger value="verification">
-                  <Vote className="w-4 h-4 mr-2" />
-                  Verification ({pendingSubmissions.length})
+                  <Vote className="w-4 h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Verification</span>
+                  <span className="sm:hidden">({pendingSubmissions.length})</span>
+                  <span className="hidden sm:inline"> ({pendingSubmissions.length})</span>
                 </TabsTrigger>
                 <TabsTrigger value="session">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Current Session
+                  <BookOpen className="w-4 h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Current Session</span>
+                  <span className="sm:hidden">Session</span>
                 </TabsTrigger>
                 <TabsTrigger value="leaderboard">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Leaderboard
+                  <TrendingUp className="w-4 h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Leaderboard</span>
+                  <span className="sm:hidden">Ranks</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -541,20 +554,24 @@ export default function HomePage() {
 
               <TabsContent value="session">
                 {currentSession ? (
-                  <div className="space-y-6">
-                    <SessionCard 
-                      session={currentSession} 
+                  inLearningSession ? (
+                    <LearningSession 
+                      session={currentSession}
                       currentUserId={session.user.id}
-                      onStartSession={() => {}}
+                      onComplete={() => {
+                        setInLearningSession(false)
+                        fetchGroupData() // Refresh session data
+                      }}
                     />
-                    <ContentReader 
-                      contentItems={currentSession.topic?.contentItems || []}
-                      sessionId={currentSession.id}
-                      userResponses={currentSession.responses || []}
-                      onQuestionAnswered={() => {}}
-                      onAllCompleted={() => {}}
-                    />
-                  </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <SessionCard 
+                        session={currentSession} 
+                        currentUserId={session.user.id}
+                        onStartSession={() => setInLearningSession(true)}
+                      />
+                    </div>
+                  )
                 ) : (
                   <Card>
                     <CardContent className="text-center py-8">
@@ -563,8 +580,42 @@ export default function HomePage() {
                         No active session
                       </h3>
                       <p className="text-gray-600">
-                        New weekly sessions start automatically. Check back soon!
+                        {isGroupLeader 
+                          ? "Create weekly learning sessions for your group members."
+                          : "New weekly sessions start automatically. Check back soon!"
+                        }
                       </p>
+                      {isGroupLeader && (
+                        <Button 
+                          className="mt-4"
+                          onClick={async () => {
+                            try {
+                              setLoading(true)
+                              const response = await fetch('/api/sessions/create', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ groupId: selectedGroup.id })
+                              })
+                              
+                              if (response.ok) {
+                                fetchGroupData() // Refresh to show new session
+                              } else {
+                                const error = await response.json()
+                                alert(error.error || 'Failed to create sessions')
+                              }
+                            } catch (error) {
+                              console.error('Error creating sessions:', error)
+                              alert('Failed to create sessions')
+                            } finally {
+                              setLoading(false)
+                            }
+                          }}
+                          disabled={loading}
+                        >
+                          <BookOpen className="w-4 h-4 mr-2" />
+                          {loading ? 'Creating...' : 'Create Learning Sessions'}
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 )}

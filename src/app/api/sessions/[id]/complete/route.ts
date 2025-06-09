@@ -25,8 +25,8 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Find the session
-    const gameSession = await prisma.session.findUnique({
+    // Find the learning session
+    const gameSession = await prisma.learningSession.findUnique({
       where: { id: sessionId },
       include: {
         playerA: true,
@@ -59,10 +59,10 @@ export async function POST(
     }
 
     // Check if all questions have been answered by both players
-    const totalQuestions = gameSession.topic.contentItems.reduce(
+    const totalQuestions = gameSession.topic?.contentItems.reduce(
       (sum: number, item: any) => sum + item.questions.length,
       0
-    )
+    ) || 0
 
     const playerAResponses = gameSession.responses.filter((r: any) => r.userId === gameSession.playerAId).length
     const playerBResponses = gameSession.responses.filter((r: any) => r.userId === gameSession.playerBId).length
@@ -89,14 +89,14 @@ export async function POST(
         where: { id: gameSession.playerBId },
         data: { rating: eloResult.playerBNewRating }
       }),
-      prisma.session.update({
+      prisma.learningSession.update({
         where: { id: sessionId },
         data: { completed: true }
       })
     ])
 
     // Return updated session with new ratings
-    const updatedSession = await prisma.session.findUnique({
+    const updatedSession = await prisma.learningSession.findUnique({
       where: { id: sessionId },
       include: {
         playerA: true,

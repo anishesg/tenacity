@@ -10,9 +10,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { questionId, selected, sessionId } = await request.json()
+    const { questionId, selectedAnswer, sessionId, correct, points } = await request.json()
     
-    if (!questionId || selected === undefined || !sessionId) {
+    if (!questionId || selectedAnswer === undefined || !sessionId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -35,13 +35,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already answered this question
-    const existingResponse = await prisma.response.findUnique({
+    const existingResponse = await prisma.response.findFirst({
       where: {
-        sessionId_questionId_userId: {
-          sessionId,
-          questionId,
-          userId: user.id
-        }
+        sessionId,
+        questionId,
+        userId: user.id
       }
     })
 
@@ -49,9 +47,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Question already answered' }, { status: 400 })
     }
 
-    // Check if answer is correct
-    const correct = selected === question.answerIndex
-    const pointsAwarded = correct ? question.points : 0
+    // Use provided correct status and points
+    const pointsAwarded = points || 0
 
     // Create response
     const response = await prisma.response.create({
@@ -59,20 +56,20 @@ export async function POST(request: NextRequest) {
         sessionId,
         questionId,
         userId: user.id,
-        selected,
+        selected: selectedAnswer,
         correct,
         pointsAwarded
       }
     })
 
-    // Update session score
-    const sessionData = await prisma.session.findUnique({
+    // Update learning session score
+    const sessionData = await prisma.learningSession.findUnique({
       where: { id: sessionId }
     })
 
     if (sessionData) {
       if (sessionData.playerAId === user.id) {
-        await prisma.session.update({
+        await prisma.learningSession.update({
           where: { id: sessionId },
           data: {
             playerAScore: {
@@ -81,7 +78,7 @@ export async function POST(request: NextRequest) {
           }
         })
       } else if (sessionData.playerBId === user.id) {
-        await prisma.session.update({
+        await prisma.learningSession.update({
           where: { id: sessionId },
           data: {
             playerBScore: {
