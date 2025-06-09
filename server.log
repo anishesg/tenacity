@@ -1,0 +1,112 @@
+
+> fantasy-learning@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.123:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 154ms
+ ✓ Ready in 851ms
+ ✓ Compiled /api/auth/[...nextauth] in 448ms
+ GET /api/auth/providers 200 in 854ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1023ms
+ GET / 200 in 1129ms
+ GET /api/auth/csrf 200 in 15ms
+ GET /api/auth/providers 200 in 12ms
+ GET /api/auth/session 200 in 12ms
+ POST /api/auth/callback/credentials 302 in 13ms
+ GET /api/auth/session 200 in 13ms
+ GET /api/auth/session 200 in 80ms
+ GET / 200 in 53ms
+ GET /api/auth/csrf 200 in 128ms
+ GET /api/auth/session 200 in 330ms
+ GET /api/auth/session 200 in 188ms
+ ○ Compiling /favicon.ico ...
+ POST /api/auth/signin/credentials 302 in 1169ms
+ GET /api/auth/session 200 in 118ms
+ POST /api/auth/callback/credentials 302 in 45ms
+ GET /api/auth/session 200 in 42ms
+ ✓ Compiled /favicon.ico in 2s
+file:///Users/anishkataria/tenacity/fantasy-learning/node_modules/@prisma/client/runtime/library.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: TypeError [ERR_INVALID_ARG_TYPE]: The "payload" argument must be of type object. Received null
+Error fetching current session: Error [PrismaClientValidationError]: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findFirst()` invocation in
+/Users/anishkataria/tenacity/fantasy-learning/.next/server/chunks/[root-of-the-server]__a45a1c44._.js:443:175
+
+  440 // Get current week start
+  441 const weekStart = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$utils$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getWeekStart"])(new Date());
+  442 // Find current session for this user and group
+→ 443 const currentSession = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].session.findFirst({
+        where: {
+          groupId: "38a0a70d-e6cf-44b6-b867-c41141cb6f70",
+          ~~~~~~~
+          weekStart: new Date("2025-06-02T07:00:00.000Z"),
+          OR: [
+            {
+              playerAId: "da5a921f-80ee-47eb-8219-e9f7e8d46dce"
+            },
+            {
+              playerBId: "da5a921f-80ee-47eb-8219-e9f7e8d46dce"
+            }
+          ],
+      ?   AND?: SessionWhereInput | SessionWhereInput[],
+      ?   NOT?: SessionWhereInput | SessionWhereInput[],
+      ?   id?: StringFilter | String,
+      ?   sessionToken?: StringFilter | String,
+      ?   userId?: StringFilter | String,
+      ?   expires?: DateTimeFilter | DateTime,
+      ?   user?: UserScalarRelationFilter | UserWhereInput
+        },
+        include: {
+          topic: {
+            include: {
+              contentItems: {
+                include: {
+                  questions: true
+                },
+                orderBy: {
+                  order: "asc"
+                }
+              }
+            }
+          },
+          playerA: true,
+          playerB: true,
+          responses: {
+            where: {
+              userId: "da5a921f-80ee-47eb-8219-e9f7e8d46dce"
+            }
+          }
+        }
+      })
+
+Unknown argument `groupId`. Available options are marked with ?.
+    at <unknown> (src/app/api/sessions/current/route.ts:34:48)
+    at async GET (src/app/api/sessions/current/route.ts:34:27)
+  32 |
+  33 |     // Find current session for this user and group
+> 34 |     const currentSession = await prisma.session.findFirst({
+     |                                                ^
+  35 |       where: {
+  36 |         groupId,
+  37 |         weekStart, {
+  clientVersion: '6.9.0'
+}
+ GET /api/sessions/current?groupId=38a0a70d-e6cf-44b6-b867-c41141cb6f70 500 in 1194ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 2259ms
+ ✓ Compiled /api/leaderboard in 296ms
+ GET /api/leaderboard?groupId=38a0a70d-e6cf-44b6-b867-c41141cb6f70&scope=overall 200 in 319ms
+ ○ Compiling /api/tasks ...
+ ✓ Compiled /api/tasks in 698ms
+ GET /api/tasks?groupId=38a0a70d-e6cf-44b6-b867-c41141cb6f70 200 in 741ms
+ ✓ Compiled middleware in 237ms
+ ✓ Compiled in 2.9s
+ ✓ Compiled / in 48ms
+ GET / 200 in 154ms
+ GET /api/auth/session 200 in 67ms
+ ✓ Compiled middleware in 855ms
+ ✓ Compiled middleware in 63ms
+[?25h
